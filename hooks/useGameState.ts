@@ -39,6 +39,21 @@ const getRandomEmojis = (count: number): string[] => {
   return shuffled.slice(0, count);
 };
 
+// 音效播放函数
+const playSound = (soundFile: string, volume: number = 0.4) => {
+  try {
+    const audio = new Audio(soundFile);
+    audio.volume = volume;
+    audio.play().catch((error) => {
+      console.log(`音效播放失败 (${soundFile}):`, error);
+      // 静默处理音效播放失败，不影响游戏体验
+    });
+  } catch (error) {
+    console.log(`音效加载失败 (${soundFile}):`, error);
+    // 静默处理音效加载失败
+  }
+};
+
 export function useGameState() {
   // Initialize cards
   const [cards, setCards] = useState<Card[]>([]);
@@ -94,6 +109,9 @@ export function useGameState() {
         return;
       }
 
+      // 播放翻卡音效
+      playSound("/flipcard.mp3", 0.3);
+
       // Flip the card
       const newFlippedIndices = [...flippedIndices, index];
       setFlippedIndices(newFlippedIndices);
@@ -104,7 +122,9 @@ export function useGameState() {
 
         // Check if the two flipped cards match
         if (cards[firstIndex].emoji === cards[secondIndex].emoji) {
-          // Match found
+          // Match found - 播放匹配成功音效
+          playSound("/correct.mp3", 0.5);
+          
           const newMatchedPairs = [...matchedPairs, firstIndex, secondIndex];
           const newMatchedByPlayer = { ...matchedByPlayer };
           newMatchedByPlayer[firstIndex] = currentPlayer;
