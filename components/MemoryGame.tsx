@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,18 +30,31 @@ export default function MemoryGame() {
   } = useGameState();
 
   const { toast } = useToast();
+  const prevMatchedPairsLength = useRef(0);
 
   // Show toast when a player makes a match
   useEffect(() => {
-    if (matchedPairs.length > 0 && matchedPairs.length % 2 === 0) {
-      const lastMatch = cards[matchedPairs[matchedPairs.length - 1]].emoji;
-      toast({
-        title: `${playerNames[currentPlayer - 1]} 匹配成功 ${lastMatch}！`,
-        description: `${playerNames[currentPlayer - 1]} 获得额外回合。`,
-        duration: 2000,
-      });
+    // 检查是否有新的匹配对
+    if (matchedPairs.length > prevMatchedPairsLength.current && matchedPairs.length > 0) {
+      // 获取最新匹配的卡片索引
+      const lastMatchedIndex = matchedPairs[matchedPairs.length - 1];
+      const lastMatch = cards[lastMatchedIndex]?.emoji;
+      
+      // 从matchedByPlayer中获取实际匹配成功的玩家
+      const matchingPlayer = matchedByPlayer[lastMatchedIndex];
+      
+      if (lastMatch && matchingPlayer && playerNames[matchingPlayer - 1]) {
+        toast({
+          title: `${playerNames[matchingPlayer - 1]} 匹配成功 ${lastMatch}！`,
+          description: `${playerNames[matchingPlayer - 1]} 获得额外回合。`,
+          duration: 2000,
+        });
+      }
     }
-  }, [matchedPairs.length, cards, currentPlayer, playerNames, toast]);
+    
+    // 更新之前的匹配对数量
+    prevMatchedPairsLength.current = matchedPairs.length;
+  }, [matchedPairs.length, cards, matchedByPlayer, playerNames, toast]);
 
   return (
     <>
